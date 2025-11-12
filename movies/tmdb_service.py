@@ -183,8 +183,6 @@ class TMDbService:
         Get cache statistics (useful for monitoring)
         """
         try:
-            from django_redis import get_redis_connection
-
             redis_conn = get_redis_connection("default")
 
             info = redis_conn.info("stats")
