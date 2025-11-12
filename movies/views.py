@@ -72,7 +72,7 @@ def movie_details(request, movie_id):
 
 class FavoriteMovieListView(generics.ListAPIView):
     """
-    Get list of user's favorite movies
+    Get list of the user's favorite movies
     """
 
     serializer_class = FavoriteMovieSerializer
