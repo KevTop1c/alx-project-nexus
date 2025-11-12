@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "movies",
 ]
 
 MIDDLEWARE = [
@@ -71,6 +72,9 @@ DATABASES = {
     }
 }
 
+# TMDb Configuration
+TMDB_API_KEY = config("TMDB_API_KEY")
+TMDB_BASE_URL = config("TMDB_BASE_URL")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
