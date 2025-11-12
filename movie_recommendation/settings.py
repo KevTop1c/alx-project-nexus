@@ -76,6 +76,19 @@ DATABASES = {
     }
 }
 
+# Redis Cache configuration
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{config('REDIS_HOST')}:{config('REDIS_PORT')}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": "movie_app",
+        "TIMEOUT": 3600,  # 1 hour default
+    }
+}
+
 # TMDb Configuration
 TMDB_API_KEY = config("TMDB_API_KEY")
 TMDB_BASE_URL = config("TMDB_BASE_URL")
