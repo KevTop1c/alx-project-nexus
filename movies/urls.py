@@ -7,6 +7,7 @@ from .views import (
     FavoriteMovieListView,
     add_favorite,
     remove_favorite,
+    cache_stats,
 )
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path("favorites/", FavoriteMovieListView.as_view(), name="favorite-movies"),
     path("favorites/add/", add_favorite, name="add-favorite"),
     path("favorites/remove/<int:movie_id>/", remove_favorite, name="remove-favorite"),
+    path("cache-stats/", cache_stats, name="cache-stats"),
 ]
