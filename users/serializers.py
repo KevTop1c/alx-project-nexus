@@ -1,5 +1,8 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from .models import UserProfile
 
 
@@ -50,3 +53,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ["user", "bio", "created_at", "updated_at"]
         read_only_fields = ["created_at", "updated_at"]
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Simple token serializer that handles login and adds user data to response
+    """
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data["user"] = {
+            "id": self.user.id,
+            "username": self.user.username,
+            "email": self.user.email,
+            "first_name": self.user.first_name,
+            "last_name": self.user.last_name,
+        }
+        return data

@@ -3,6 +3,7 @@ from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from drf_yasg.utils import swagger_auto_schema
@@ -11,6 +12,7 @@ from .serializers import (
     UserRegistrationSerializer,
     UserSerializer,
     UserProfileSerializer,
+    CustomTokenObtainPairSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -50,7 +52,6 @@ class RegisterView(generics.CreateAPIView):
 
 
 @swagger_auto_schema(
-    method="post",
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=["username", "password"],
@@ -65,55 +66,31 @@ class RegisterView(generics.CreateAPIView):
             openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "user": openapi.Schema(type=openapi.TYPE_OBJECT),
-                    "tokens": openapi.Schema(type=openapi.TYPE_OBJECT),
+                    "access": openapi.Schema(type=openapi.TYPE_STRING),
+                    "refresh": openapi.Schema(type=openapi.TYPE_STRING),
+                    "user": openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            "id": openapi.Schema(type=openapi.TYPE_INTEGER),
+                            "username": openapi.Schema(type=openapi.TYPE_STRING),
+                            "email": openapi.Schema(type=openapi.TYPE_STRING),
+                            "first_name": openapi.Schema(type=openapi.TYPE_STRING),
+                            "last_name": openapi.Schema(type=openapi.TYPE_STRING),
+                        }
+                    ),
                 },
             ),
-        )
+        ),
+        400: openapi.Response("Bad Request - Invalid input"),
+        401: openapi.Response("Unauthorized - Invalid credentials"),
     },
 )
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def login_view(request):
+class LoginView(TokenObtainPairView):
     """
-    Login with username and password to receive JWT tokens
+    API endpoint for obtaining JWT tokens (login).
     """
-    username = request.data.get("username")
-    password = request.data.get("password")
 
-    logger.info("API REQUEST: /api/users/login/ | username=%s", username)
-
-    if not username or not password:
-        logger.warning("API WARNING: /api/users/login/ | missing credentials")
-        return Response(
-            {"error": "Username and password are required"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    user = authenticate(username=username, password=password)
-
-    if user is None:
-        logger.warning(
-            "API WARNING: /api/users/login/ | invalid credentials | username=%s",
-            username,
-        )
-        return Response(
-            {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
-        )
-
-    refresh = RefreshToken.for_user(user)
-
-    logger.info("API RESPONSE: /api/users/login/ | status=200 | user=%s", user.username)
-
-    return Response(
-        {
-            "user": UserSerializer(user).data,
-            "tokens": {
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            },
-        }
-    )
+    serializer_class = CustomTokenObtainPairSerializer
 
 
 @api_view(["GET"])
