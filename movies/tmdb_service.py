@@ -139,7 +139,7 @@ class TMDbService:
         )
         data = self._make_request("search/movie", {"query": query, "page": page})
         logger.info(
-            "SEARCH COMPLETED: query='%s' | Results: %s | Time: {datetime.now().isoformat()}",
+            "SEARCH COMPLETED: query='%s' | Results: %s | Time: %s",
             query,
             len(data.get("results", [])),
             datetime.now().isoformat(),
