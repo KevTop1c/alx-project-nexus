@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_yasg",
+    "corsheaders",
     "movies",
     "users",
 ]
@@ -92,6 +93,9 @@ CACHES = {
         "TIMEOUT": 3600,  # 1 hour default
     }
 }
+
+# CORS configuration
+CORS_ALLOW_ALL_ORIGINS = True
 
 # TMDb Configuration
 TMDB_API_KEY = config("TMDB_API_KEY")
