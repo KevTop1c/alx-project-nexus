@@ -1,4 +1,5 @@
 import os
+import certifi
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
@@ -7,21 +8,18 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 os.makedirs(LOG_DIR, exist_ok=True)
+os.environ["SSL_CERT_FILE"] = certifi.where()
+os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
+
 DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -29,10 +27,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Third-party apps
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_yasg",
     "corsheaders",
+    "django_celery_beat",
+    "django_celery_results",
+    # Local apps
     "movies",
     "users",
 ]
@@ -68,8 +70,6 @@ WSGI_APPLICATION = "movie_recommendation.wsgi.application"
 
 
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -93,6 +93,97 @@ CACHES = {
         "TIMEOUT": 3600,  # 1 hour default
     }
 }
+
+# RabbitMQ Configuration
+RABBITMQ_HOST = config("RABBITMQ_HOST", default="localhost")
+RABBITMQ_PORT = config("RABBITMQ_PORT", default=5672, cast=int)
+RABBITMQ_USER = config("RABBITMQ_USER", default="guest")
+RABBITMQ_PASSWORD = config("RABBITMQ_PASSWORD", default="guest")
+RABBITMQ_VHOST = config("RABBITMQ_VHOST", default="/")
+
+# Celery Configuration with RabbitMQ
+CELERY_BROKER_URL = config(
+    "CELERY_BROKER_URL",
+    default=f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}",
+)
+
+# Result Backend (Redis for task results)
+CELERY_RESULT_BACKEND = config(
+    "CELERY_RESULT_BACKEND", default="redis://localhost:6379/0"
+)
+
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "UTC"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes
+CELERY_TASK_ACKS_LATE = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
+
+# RabbitMQ Specific Configuration
+CELERY_BROKER_CONNECTION_RETRY = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 10
+CELERY_BROKER_POOL_LIMIT = 10
+CELERY_BROKER_HEARTBEAT = 30
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "visibility_timeout": 3600,  # 1 hour
+    "max_retries": 3,
+    "interval_start": 0,
+    "interval_step": 0.2,
+    "interval_max": 0.5,
+}
+
+# Celery Beat Schedule (Periodic Tasks)
+CELERY_BEAT_SCHEDULE = {
+    "refresh-trending-cache-every-hour": {
+        "task": "movies.tasks.refresh_trending_cache",
+        "schedule": 3600.0,  # Run every hour
+        "options": {"queue": "cache", "priority": 7},
+    },
+    "cleanup-old-cache-daily": {
+        "task": "movies.tasks.cleanup_old_cache",
+        "schedule": 86400.0,  # Run daily
+        "options": {"queue": "cache", "priority": 5},
+    },
+    "send-weekly-recommendations": {
+        "task": "movies.tasks.send_weekly_recommendations",
+        "schedule": 604800.0,  # Run weekly
+        "options": {"queue": "emails", "priority": 6},
+    },
+    "generate-analytics-reports": {
+        "task": "movies.tasks.generate_analytics_report",
+        "schedule": 43200.0,  # Run every 12 hours
+        "options": {"queue": "reports", "priority": 4},
+    },
+}
+
+# Task Routing Configuration
+CELERY_TASK_ROUTES = {
+    "movies.tasks.send_weekly_recommendations": {"queue": "emails"},
+    "movies.tasks.send_favorite_notification": {"queue": "emails"},
+    "movies.tasks.refresh_trending_cache": {"queue": "cache"},
+    "movies.tasks.cleanup_old_cache": {"queue": "cache"},
+    "movies.tasks.fetch_movie_details_async": {"queue": "api"},
+    "movies.tasks.generate_analytics_report": {"queue": "reports"},
+}
+
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+# Email Configuration
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_TIMEOUT = 30
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@movieapp.com")
 
 # CORS configuration
 CORS_ALLOW_ALL_ORIGINS = True
@@ -127,8 +218,6 @@ SIMPLE_JWT = {
 }
 
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -146,25 +235,15 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = "static/"
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Logging configuration
@@ -216,6 +295,14 @@ LOGGING = {
             "backupCount": 5,
             "formatter": "verbose",
         },
+        "celery_file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "celery.log"),
+            "maxBytes": 1024 * 1024 * 10,  # 10 MB
+            "backupCount": 5,
+            "formatter": "verbose",
+        },
     },
     "loggers": {
         "django": {
@@ -235,6 +322,16 @@ LOGGING = {
         },
         "users.views": {
             "handlers": ["console", "api_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "celery": {
+            "handlers": ["console", "celery_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "movies.tasks": {
+            "handlers": ["console", "celery_file"],
             "level": "INFO",
             "propagate": False,
         },
