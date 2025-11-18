@@ -13,6 +13,7 @@ from drf_yasg import openapi
 from .models import FavoriteMovie
 from .serializers import FavoriteMovieSerializer, AddFavoriteSerializer, MovieSerializer
 from .tmdb_service import TMDbService
+from .tasks import send_favorite_notification, fetch_movie_details_async
 
 logger = logging.getLogger(__name__)
 tmdb_service = TMDbService()
@@ -276,7 +277,25 @@ class AddFavoriteView(generics.GenericAPIView):
             )
 
         # Create a new favorite entry
-        favorite = FavoriteMovie.objects.create(user=request.user, **validated_data)
+        favorite = FavoriteMovie.objects.create(
+            user=request.user,
+            **validated_data,
+        )
+
+        # Send notification asynchronously
+        send_favorite_notification.delay(
+            user_id=request.user.id,
+            movie_title=validated_data["title"],
+        )
+
+        # Fetch and cache full movie details asynchronously
+        fetch_movie_details_async.delay(validated_data["movie_id"])
+
+        logger.info(
+            "User %s added movie %s to favorites",
+            request.user.username,
+            validated_data["title"],
+        )
 
         return Response(
             FavoriteMovieSerializer(favorite).data,
