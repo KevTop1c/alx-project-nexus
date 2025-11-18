@@ -161,6 +161,10 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# Task Priority Configuration
+CELERY_TASK_DEFAULT_PRIORITY = 5
+CELERY_TASK_PRIORITY_ROUTING = True
+
 # Task Routing Configuration
 CELERY_TASK_ROUTES = {
     "movies.tasks.send_weekly_recommendations": {"queue": "emails"},
