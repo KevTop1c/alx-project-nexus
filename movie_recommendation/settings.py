@@ -100,7 +100,7 @@ else:
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{config('REDIS_HOST')}:{config('REDIS_PORT')}/1",
+        "LOCATION": config("REDIS_URL", "redis://localhost:6379/1"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
