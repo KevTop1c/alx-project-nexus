@@ -1,0 +1,121 @@
+services:
+  # Django Web Service
+  - type: web
+    plan: free
+    name: movie-recommendation-api
+    runtime: python
+    buildCommand: "./render-build.sh"
+    startCommand: "python -m gunicorn movie_recommendation.asgi:application -k uvicorn.workers.UvicornWorker --workers 3"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: movie-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        sync: false
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: movie-redis
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: movie-redis
+          property: connectionString
+      - key: TMDB_API_KEY
+        sync: false
+      - key: EMAIL_HOST
+        value: live.smtp.mailtrap.io
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+
+  # Celery Worker Service
+  - type: worker
+    name: movie-recommendation-worker
+    runtime: python
+    plan: free
+    buildCommand: "./render-build.sh"
+    startCommand: "celery -A movie_recommendation worker --loglevel=info --concurrency=2 -Q default,emails,cache,api,reports"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: movie-recommendation-api
+          property: env.SECRET_KEY
+      - key: DATABASE_URL
+        fromDatabase:
+          name: movie-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        sync: false
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: movie-redis
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: movie-redis
+          property: connectionString
+
+  # Celery Beat Service (Periodic Tasks)
+  - type: worker
+    name: movie-recommendation-beat
+    runtime: python
+    plan: free
+    buildCommand: "./render-build.sh"
+    startCommand: "celery -A movie_recommendation beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: movie-recommendation-api
+          property: env.SECRET_KEY
+      - key: DATABASE_URL
+        fromDatabase:
+          name: movie-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        sync: false
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: movie-redis
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: movie-redis
+          property: connectionString
+
+
+databases:
+  - name: movie-db
+    databaseName: movie_recommendation_db
+    user: movie_user
+    plan: free
+
+# Redis
+keyValue:
+  - type: keyvalue
+    name: movie-redis
+    plan: free
+    ipAllowList: ["0.0.0.0/0"]
