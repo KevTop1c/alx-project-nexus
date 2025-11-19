@@ -7,7 +7,7 @@ from rest_framework import status
 from unittest.mock import patch, MagicMock
 import json
 from .models import FavoriteMovie
-from .tmdb_service import TMDbService
+from .utils.tmdb_service import TMDbService
 
 
 class TMDbServiceTests(TestCase):

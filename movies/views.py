@@ -12,7 +12,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .models import FavoriteMovie
 from .serializers import FavoriteMovieSerializer, AddFavoriteSerializer, MovieSerializer
-from .tmdb_service import TMDbService
+from .utils.tmdb_service import TMDbService
 from .tasks import send_favorite_notification, fetch_movie_details_async
 
 logger = logging.getLogger(__name__)

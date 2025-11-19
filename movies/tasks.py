@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Count, Avg, Q
 from .models import FavoriteMovie
-from .tmdb_service import TMDbService
+from .utils.tmdb_service import TMDbService
 
 logger = get_task_logger(__name__)
 tmdb_service = TMDbService()
@@ -252,7 +252,7 @@ def send_favorite_notification(self, user_id, movie_title):
         return {"status": "error", "reason": "user_not_found"}
 
     except Exception as e:
-        logger.error("Error sending favorite notification: %s", e)
+        logger.error("Error sending favorite movie notification: %s", e)
         raise self.retry(exc=e, countdown=60, max_retries=3)
 
 
