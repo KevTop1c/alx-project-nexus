@@ -160,6 +160,7 @@ The application includes comprehensive logging for:
 - **app.log**: General application logs
 - **cache.log**: Cache hits/misses and Redis operations
 - **api.log**: API requests and responses
+- **celery.log**: Celery task logs
 
 ### Log Levels
 
@@ -219,6 +220,111 @@ Run tests with:
 
 ```bash
 python manage.py test
+```
+
+## 🐰 RabbitMQ + Celery Setup Guide
+
+RabbitMQ is a robust message broker that provides:
+
+- **Reliable message delivery**
+- **Message persistence**
+- **Flexible routing**
+- **Multiple queue support**
+- **Priority queues**
+- **Dead letter exchanges**
+
+## 🏗️ Architecture
+
+```
+┌─────────────┐      ┌──────────────┐      ┌────────────────┐
+│   Django    │─────▶│   RabbitMQ   │─────▶│ Celery Workers │
+│ Application │      │   (Broker)   │      │   (Multiple)   │
+└─────────────┘      └──────────────┘      └────────────────┘
+                            │
+                            ▼
+                     ┌──────────────┐
+                     │    Redis     │
+                     │  (Results)   │
+                     └──────────────┘
+```
+
+## 📊 Queue Structure
+
+| Queue       | Priority        | Purpose            | Tasks                                                   |
+| ----------- | --------------- | ------------------ | ------------------------------------------------------- |
+| **emails**  | 10 (highest)    | User notifications | send_favorite_notification, send_weekly_recommendations |
+| **cache**   | 7 (high)        | Cache management   | refresh_trending_cache, cleanup_old_cache               |
+| **api**     | 6 (medium-high) | External API calls | fetch_movie_details_async, bulk_cache_popular_movies    |
+| **default** | 5 (medium)      | General tasks      | Fallback queue                                          |
+| **reports** | 4 (low-medium)  | Analytics          | generate_analytics_report                               |
+
+#### 1. Install RabbitMQ
+
+**macOS:**
+
+```bash
+brew install rabbitmq
+brew services start rabbitmq
+sudo rabbitmq-plugins enable rabbitmq_management
+```
+
+**Ubuntu:**
+
+```bash
+sudo apt-get update
+sudo apt-get install rabbitmq-server
+sudo systemctl start rabbitmq-server
+sudo systemctl enable rabbitmq-server
+sudo rabbitmq-plugins enable rabbitmq_management
+```
+
+#### 2. Configure RabbitMQ
+
+```bash
+# Create admin user
+sudo rabbitmqctl add_user admin admin123
+sudo rabbitmqctl set_user_tags admin administrator
+sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
+
+# Verify installation
+sudo rabbitmqctl status
+```
+
+#### 3. Setup Queues
+
+```bash
+python manage.py setup_rabbitmq
+```
+
+#### 4. Start Services
+
+**Terminal 1: Django**
+
+```bash
+python manage.py runserver
+```
+
+**Terminal 2: Celery Worker**
+
+```bash
+celery -A movie_recommendation worker \
+  --loglevel=info \
+  --concurrency=4 \
+  -Q default,emails,cache,api,reports
+```
+
+**Terminal 3: Celery Beat**
+
+```bash
+celery -A movie_recommendation beat \
+  --loglevel=info \
+  --scheduler django_celery_beat.schedulers:DatabaseScheduler
+```
+
+**Terminal 4: Flower (Optional)**
+
+```bash
+celery -A movie_recommendation flower --port=5555
 ```
 
 ## Deployment
