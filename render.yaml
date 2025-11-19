@@ -26,7 +26,7 @@ services:
           property: connectionString
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: movie-redis
           property: connectionString
       - key: TMDB_API_KEY
@@ -65,7 +65,7 @@ services:
         sync: false
       - key: CELERY_RESULT_BACKEND
         fromService:
-          type: redis
+          type: keyvalue
           name: movie-redis
           property: connectionString
       - key: REDIS_URL
@@ -97,12 +97,12 @@ services:
         sync: false
       - key: CELERY_RESULT_BACKEND
         fromService:
-          type: redis
+          type: keyvalue
           name: movie-redis
           property: connectionString
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: movie-redis
           property: connectionString
 
