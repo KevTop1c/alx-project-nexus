@@ -3,15 +3,17 @@
 # Exit on error
 set -o errexit
 
-# Install dependencies
-pip install -r requirements.txt
+# Upgrade pip first
 pip install --upgrade pip
 
-# Create an admin user
-python manage.py initadmin
-
-# Convert static asset files
-python manage.py collectstatic --no-input
+# Install dependencies
+pip install -r requirements.txt
 
 # Apply any outstanding database migrations
-python manage.py migrate
+python manage.py migrate --noinput
+
+# Create an admin user (make sure initadmin handles idempotency)
+python manage.py initadmin || true
+
+# Collect static files
+python manage.py collectstatic --no-input
