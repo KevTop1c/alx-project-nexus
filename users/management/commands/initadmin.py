@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
+from decouple import config
 
 
 class Command(BaseCommand):
@@ -9,9 +10,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         User = get_user_model()
-        username = "kev_a"
-        email = "kev.topic001@gmail.com"
-        password = "adminpass123!"
+        username = config("DJANGO_SUPERUSER_USERNAME")
+        email = config("DJANGO_SUPERUSER_EMAIL")
+        password = config("DJANGO_SUPERUSER_PASSWORD")
 
         if not User.objects.filter(username=username).exists():
             User.objects.create_superuser(username, email, password)
