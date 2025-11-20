@@ -102,19 +102,41 @@ REDIS_URL = config("UPSTASH_REDIS_URL", default=None)
 if not REDIS_URL:
     raise Exception("UPSTASH_REDIS_URL is not set in environment")
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_URL,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SSL_CERT_REQS": ssl.CERT_REQUIRED,
-            "SSL_CA_CERTS": certifi.where(),
-        },
-        "KEY_PREFIX": "movie_app",
-        "TIMEOUT": 3600,  # 1 hour default
+if IS_RENDER and REDIS_URL:
+    # Render / Production: Upstash with SSL
+    CELERY_RESULT_BACKEND = REDIS_URL
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "SSL_CERT_REQS": ssl.CERT_REQUIRED,
+                "SSL_CA_CERTS": certifi.where(),
+            },
+            "KEY_PREFIX": "movie_app",
+            "TIMEOUT": 3600,
+        }
     }
-}
+    CELERY_REDIS_BACKEND_USE_SSL = {
+        "ssl_cert_reqs": ssl.CERT_REQUIRED,
+        "ssl_ca_certs": certifi.where(),
+    }
+else:
+    # Local development: plain Redis on localhost
+    REDIS_URL = config("REDIS_URL")
+    CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND")
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+            "KEY_PREFIX": "movie_app",
+            "TIMEOUT": 3600,
+        }
+    }
 
 # RabbitMQ Configuration
 RABBITMQ_HOST = config("RABBITMQ_HOST", default="localhost")
@@ -128,13 +150,6 @@ CELERY_BROKER_URL = config(
     "CELERY_BROKER_URL",
     default=f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}",
 )
-
-# Result Backend (Redis for task results)
-CELERY_RESULT_BACKEND = REDIS_URL
-CELERY_REDIS_BACKEND_USE_SSL = {
-    "ssl_cert_reqs": ssl.CERT_REQUIRED,
-    "ssl_ca_certs": certifi.where(),
-}
 
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
