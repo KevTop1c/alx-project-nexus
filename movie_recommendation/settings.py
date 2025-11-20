@@ -132,6 +132,13 @@ CELERY_BROKER_URL = config(
 # Result Backend (Redis for task results)
 CELERY_RESULT_BACKEND = REDIS_URL
 
+CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {
+    "ssl": {
+        "ssl_cert_reqs": ssl.CERT_REQUIRED,
+        "ssl_ca_certs": certifi.where(),
+    }
+}
+
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
