@@ -1,6 +1,7 @@
 import os
 import certifi
 import dj_database_url
+import ssl
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
@@ -107,6 +108,8 @@ CACHES = {
         "LOCATION": REDIS_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SSL_CERT_REQS": ssl.CERT_REQUIRED,
+            "SSL_CA_CERTS": certifi.where(),
         },
         "KEY_PREFIX": "movie_app",
         "TIMEOUT": 3600,  # 1 hour default
