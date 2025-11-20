@@ -15,5 +15,15 @@ python manage.py migrate --noinput
 # Create an admin user (make sure initadmin handles idempotency)
 python manage.py initadmin || true
 
+# Ensure all superusers have profiles
+python manage.py shell -c "
+from django.contrib.auth import get_user_model
+from users.models import UserProfile
+
+User = get_user_model()
+for user in User.objects.filter(is_superuser=True):
+    UserProfile.objects.get_or_create(user=user)
+"
+
 # Collect static files
 python manage.py collectstatic --no-input
