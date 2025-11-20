@@ -97,10 +97,14 @@ else:
     }
 
 # Redis Cache configuration
+REDIS_URL = config("UPSTASH_REDIS_URL", default=None)
+if not REDIS_URL:
+    raise Exception("UPSTASH_REDIS_URL is not set in environment")
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": config("REDIS_URL", "redis://localhost:6379/1"),
+        "LOCATION": REDIS_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
