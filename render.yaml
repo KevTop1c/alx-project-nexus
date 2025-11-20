@@ -22,12 +22,12 @@ services:
       - key: CELERY_RESULT_BACKEND
         fromService:
           type: web
-          name: movie-redis
+          name: movie-recommendation-api
           property: env.UPSTASH_REDIS_URL
       - key: REDIS_URL
         fromService:
           type: web
-          name: movie-redis
+          name: movie-recommendation-api
           property: env.UPSTASH_REDIS_URL
       - key: TMDB_API_KEY
         sync: false
@@ -66,12 +66,12 @@ services:
       - key: CELERY_RESULT_BACKEND
         fromService:
           type: web
-          name: movie-redis
+          name: movie-recommendation-api
           property: env.UPSTASH_REDIS_URL
       - key: REDIS_URL
         fromService:
           type: web
-          name: movie-redis
+          name: movie-recommendation-api
           property: env.UPSTASH_REDIS_URL
 
   # Celery Beat Service (Periodic Tasks)
@@ -98,12 +98,12 @@ services:
       - key: CELERY_RESULT_BACKEND
         fromService:
           type: web
-          name: movie-redis
+          name: movie-recommendation-api
           property: env.UPSTASH_REDIS_URL
       - key: REDIS_URL
         fromService:
           type: web
-          name: movie-redis
+          name: movie-recommendation-api
           property: env.UPSTASH_REDIS_URL
 
 databases:
