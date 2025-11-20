@@ -21,14 +21,14 @@ services:
         sync: false
       - key: CELERY_RESULT_BACKEND
         fromService:
-          type: redis
+          type: web
           name: movie-redis
-          property: connectionString
+          property: env.UPSTASH_REDIS_URL
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: web
           name: movie-redis
-          property: connectionString
+          property: env.UPSTASH_REDIS_URL
       - key: TMDB_API_KEY
         sync: false
       - key: EMAIL_HOST
@@ -65,14 +65,14 @@ services:
         sync: false
       - key: CELERY_RESULT_BACKEND
         fromService:
-          type: redis
+          type: web
           name: movie-redis
-          property: connectionString
+          property: env.UPSTASH_REDIS_URL
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: web
           name: movie-redis
-          property: connectionString
+          property: env.UPSTASH_REDIS_URL
 
   # Celery Beat Service (Periodic Tasks)
   - type: worker
@@ -97,25 +97,17 @@ services:
         sync: false
       - key: CELERY_RESULT_BACKEND
         fromService:
-          type: redis
+          type: web
           name: movie-redis
-          property: connectionString
+          property: env.UPSTASH_REDIS_URL
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: web
           name: movie-redis
-          property: connectionString
-
+          property: env.UPSTASH_REDIS_URL
 
 databases:
   - name: movie-db
     databaseName: movie_recommendation_db
     user: movie_user
     plan: free
-
-# Redis
-keyValue:
-  - type: redis
-    name: movie-redis
-    plan: free
-    ipAllowList: ["0.0.0.0/0"]
