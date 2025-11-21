@@ -11,3 +11,10 @@ exclude = '''
   | dist
 )/
 '''
+
+[tool.isort]
+profile = "black"
+line_length = 127
+skip_gitignore = true
+known_first_party = ["movies", "users", "movie_recommendation"]
+skip = ["migrations", "venv", ".venv", "env"]
