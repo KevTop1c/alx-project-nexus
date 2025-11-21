@@ -224,7 +224,9 @@ python manage.py test movies.tests # Run only movies test
 python manage.py test users.tests # Run only users test
 python manage.py test movies.test_celery # Run celery test script
 ```
+
 ### Sample Output (`test_celery.py`)
+
 ```
 Found 3 test(s).
 Creating test database for alias 'default'...
@@ -246,6 +248,7 @@ Ran 3 tests in 0.680s
 
 OK
 ```
+
 ---
 
 ## 🐰 RabbitMQ + Celery Setup Guide
