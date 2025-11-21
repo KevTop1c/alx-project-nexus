@@ -219,8 +219,34 @@ git commit -m "docs: update README with API details"
 Run tests with:
 
 ```bash
-python manage.py test
+python manage.py test # Run all tests
+python manage.py test movies.tests # Run only movies test
+python manage.py test users.tests # Run only users test
+python manage.py test movies.test_celery # Run celery test script
 ```
+### Sample Output (`test_celery.py`)
+```
+Found 3 test(s).
+Creating test database for alias 'default'...
+System check identified no issues (0 silenced).
+[INFO] 2025-11-21 16:46:13,886 - Fetch details for movie 550
+[INFO] 2025-11-21 16:46:13,891 - Successfully cached details for movie 550
+.[INFO] 2025-11-21 16:46:14,119 - Starting Trending Movies cache refresh
+[INFO] 2025-11-21 16:46:14,119 - Refreshing cache for trending_movies_1
+[INFO] 2025-11-21 16:46:14,120 - Successfully refreshed trending_movies_1
+[INFO] 2025-11-21 16:46:14,120 - Refreshing cache for trending_movies_2
+[INFO] 2025-11-21 16:46:14,120 - Successfully refreshed trending_movies_2
+[INFO] 2025-11-21 16:46:14,120 - Refreshing cache for trending_movies_3
+[INFO] 2025-11-21 16:46:14,120 - Successfully refreshed trending_movies_3
+[INFO] 2025-11-21 16:46:14,120 - Trending Movies cache refresh completed
+.[INFO] 2025-11-21 16:46:14,345 - Sent favorite movie notification to test@example.com
+.
+----------------------------------------------------------------------
+Ran 3 tests in 0.680s
+
+OK
+```
+---
 
 ## 🐰 RabbitMQ + Celery Setup Guide
 
@@ -233,7 +259,7 @@ RabbitMQ is a robust message broker that provides:
 - **Priority queues**
 - **Dead letter exchanges**
 
-## 🏗️ Architecture
+### 🏗️ Architecture
 
 ```
 ┌─────────────┐      ┌──────────────┐      ┌────────────────┐
@@ -248,7 +274,7 @@ RabbitMQ is a robust message broker that provides:
                      └──────────────┘
 ```
 
-## 📊 Queue Structure
+### 📊 Queue Structure
 
 | Queue       | Priority        | Purpose            | Tasks                                                   |
 | ----------- | --------------- | ------------------ | ------------------------------------------------------- |
@@ -290,13 +316,7 @@ sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
 sudo rabbitmqctl status
 ```
 
-#### 3. Setup Queues
-
-```bash
-python manage.py setup_rabbitmq
-```
-
-#### 4. Start Services
+#### 3. Start Services
 
 **Terminal 1: Django**
 
@@ -327,13 +347,90 @@ celery -A movie_recommendation beat \
 celery -A movie_recommendation flower --port=5555
 ```
 
+---
+
+## Code Quality Check - GitHub Actions
+
+### What This Does
+
+Automatically checks your code quality on every push:
+
+✅ **Black** - Code formatting  
+✅ **isort** - Import sorting  
+✅ **Flake8** - Code linting (syntax errors, style issues)
+
+**Time:** ~30 seconds
+
+### Setup
+
+#### Step 1: Create the workflow
+
+Create `.github/workflows/code-quality.yml` with the content above.
+
+#### Step 2: Add config files
+
+Create `.flake8` and `pyproject.toml` in your project root.
+
+#### Step 3: Push to GitHub
+
+```bash
+git add .github/ .flake8 pyproject.toml
+git commit -m "ci: add code quality checks"
+git push
+```
+
+### What Happens
+
+Every push triggers code quality checks:
+
+```
+Your Push
+    ↓
+[Black] Formatting check
+    ↓
+[isort] Import sorting check
+    ↓
+[Flake8] Linting check
+    ↓
+✅ Pass or ⚠️ Issues found
+```
+
+### Fix Issues Locally
+
+If the checks fail, fix them before pushing:
+
+```bash
+# Install tools
+pip install black isort flake8
+
+# Auto-fix formatting
+black .
+
+# Auto-fix imports
+isort .
+
+# Check for issues
+flake8 .
+
+# Commit and push again
+git add .
+git commit -m "style: fix code formatting"
+git push
+```
+
+### View Results
+
+Go to your repo → **Actions** tab → See the checks
+
+---
+
 ## Deployment
 
 1. Set `DEBUG=False` in production
 2. Configure `ALLOWED_HOSTS`
-3. Use environment variables for sensitive data
+3. Use environment variables for sensitive data (Render Environment)
 4. Setup PostgreSQL and Redis on production server
-5. Collect static files: `python manage.py collectstatic`
+5. Collect static files: `python manage.py collectstatic` (defined in `render-build.sh`)
 6. Use a production WSGI server (gunicorn, uwsgi)
 
 ## ⚙️ Performance Considerations
