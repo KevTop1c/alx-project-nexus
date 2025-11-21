@@ -12,3 +12,4 @@ env/
 *.log
 staticfiles/
 media/
+dump.rdb
