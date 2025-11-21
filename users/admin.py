@@ -78,9 +78,7 @@ class CustomUserAdmin(BaseUserAdmin):
         full_name = obj.get_full_name()
         if full_name:
             return full_name
-        return format_html(
-            '<span style="color: #999; font-style: italic;">Not set</span>'
-        )
+        return format_html('<span style="color: #999; font-style: italic;">Not set</span>')
 
     full_name_display.short_description = "Full Name"
 
@@ -154,11 +152,7 @@ class CustomUserAdmin(BaseUserAdmin):
         total_users = User.objects.count()
         active_users = User.objects.filter(is_active=True).count()
         staff_users = User.objects.filter(is_staff=True).count()
-        users_with_favorites = (
-            User.objects.annotate(fav_count=Count("favorite_movies"))
-            .filter(fav_count__gt=0)
-            .count()
-        )
+        users_with_favorites = User.objects.annotate(fav_count=Count("favorite_movies")).filter(fav_count__gt=0).count()
 
         extra_context["total_users"] = total_users
         extra_context["active_users"] = active_users
@@ -214,9 +208,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     def user_email(self, obj):
         """Display user email"""
-        return obj.user.email or format_html(
-            '<span style="color: #999;">No email</span>'
-        )
+        return obj.user.email or format_html('<span style="color: #999;">No email</span>')
 
     user_email.short_description = "Email"
     user_email.admin_order_field = "user__email"
@@ -228,9 +220,7 @@ class UserProfileAdmin(admin.ModelAdmin):
             if len(obj.bio) > 100:
                 preview += "..."
             return preview
-        return format_html(
-            '<span style="color: #999; font-style: italic;">No bio</span>'
-        )
+        return format_html('<span style="color: #999; font-style: italic;">No bio</span>')
 
     bio_preview.short_description = "Bio"
 

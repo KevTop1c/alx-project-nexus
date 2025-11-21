@@ -33,9 +33,7 @@ class TMDbService:
             params["api_key"] = self.api_key
 
             logger.info("Making TMDb API request to: %s", endpoint)
-            response = requests.get(
-                url, params=params, headers=self.headers, timeout=10
-            )
+            response = requests.get(url, params=params, headers=self.headers, timeout=10)
             response.raise_for_status()
             logger.info(
                 "TMDb API request successful: %s - Status: %s",

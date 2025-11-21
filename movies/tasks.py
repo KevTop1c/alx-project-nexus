@@ -1,5 +1,4 @@
-import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -7,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.mail import send_mail
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count
 from django_redis import get_redis_connection
 
 from .models import FavoriteMovie
@@ -129,9 +128,7 @@ def send_weekly_recommendations(self):
                     continue
 
                 # Build recommendation email
-                movie_list = "\n".join(
-                    [f"- {fav.title} (Rating: {fav.vote_average})" for fav in favorites]
-                )
+                movie_list = "\n".join([f"- {fav.title} (Rating: {fav.vote_average})" for fav in favorites])
 
                 subject = f'Your Weekly Movie Recommendations - {datetime.now().strftime("%B %d, %Y")}'
                 message = f"""
@@ -281,19 +278,13 @@ def generate_analytics_report(self):
         total_favorites = FavoriteMovie.objects.count()
 
         # Most favorited movies
-        top_movies = (
-            FavoriteMovie.objects.values("movie_id", "title")
-            .annotate(count=Count("id"))
-            .order_by("-count")[:10]
-        )
+        top_movies = FavoriteMovie.objects.values("movie_id", "title").annotate(count=Count("id")).order_by("-count")[:10]
 
         # Average ratings
         avg_rating = FavoriteMovie.objects.aggregate(avg=Avg("vote_average"))["avg"]
 
         # Users with most favorites
-        top_users = User.objects.annotate(fav_count=Count("favorite_movies")).order_by(
-            "-fav_count"
-        )[:10]
+        top_users = User.objects.annotate(fav_count=Count("favorite_movies")).order_by("-fav_count")[:10]
 
         report = {
             "generated_at": datetime.now().isoformat(),
@@ -302,9 +293,7 @@ def generate_analytics_report(self):
             "total_favorites": total_favorites,
             "average_rating": round(avg_rating, 2) if avg_rating else 0,
             "top_movies": list(top_movies),
-            "top_users": [
-                {"username": u.username, "favorites": u.fav_count} for u in top_users
-            ],
+            "top_users": [{"username": u.username, "favorites": u.fav_count} for u in top_users],
         }
 
         # Cache results for 12 hours
@@ -346,9 +335,7 @@ def bulk_cache_popular_movies(self, movie_ids):
                 logger.error(f"Error caching movie {movie_id}: {str(e)}")
                 continue
 
-        logger.info(
-            "Bulk cache completed: %s/%s movies cached", cached_count, len(movie_ids)
-        )
+        logger.info("Bulk cache completed: %s/%s movies cached", cached_count, len(movie_ids))
         return {"status": "success", "cached": cached_count, "total": len(movie_ids)}
 
     except Exception as e:

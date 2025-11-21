@@ -1,9 +1,8 @@
-import json
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
@@ -207,9 +206,7 @@ class MovieEndpointTests(APITestCase):
     def setUp(self):
         """Set up test fixtures"""
         self.client = APIClient()
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         cache.clear()
 
     def tearDown(self):
@@ -245,9 +242,7 @@ class MovieEndpointTests(APITestCase):
     @patch("movies.views.tmdb_service.get_recommended_movies")
     def test_recommended_movies_endpoint(self, mock_recommended):
         """Test recommended movies endpoint"""
-        mock_recommended.return_value = {
-            "results": [{"id": 551, "title": "Recommended Movie"}]
-        }
+        mock_recommended.return_value = {"results": [{"id": 551, "title": "Recommended Movie"}]}
 
         url = reverse("recommended-movies", kwargs={"movie_id": 550})
         response = self.client.get(url)
@@ -305,12 +300,8 @@ class FavoriteMovieCRUDTests(APITestCase):
     def setUp(self):
         """Set up test fixtures"""
         self.client = APIClient()
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.other_user = User.objects.create_user(
-            username="otheruser", email="other@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        self.other_user = User.objects.create_user(username="otheruser", email="other@example.com", password="testpass123")
 
         # Create sample favorite
         self.favorite = FavoriteMovie.objects.create(
@@ -349,9 +340,7 @@ class FavoriteMovieCRUDTests(APITestCase):
     def test_list_favorites_only_shows_user_movies(self):
         """Test that users only see their own favorites"""
         # Create favorite for other user
-        FavoriteMovie.objects.create(
-            user=self.other_user, movie_id=551, title="Another Movie", vote_average=7.5
-        )
+        FavoriteMovie.objects.create(user=self.other_user, movie_id=551, title="Another Movie", vote_average=7.5)
 
         self.client.force_authenticate(user=self.user)
 
@@ -451,18 +440,14 @@ class FavoriteMovieCRUDTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         # Verify original favorite still exists
-        self.assertTrue(
-            FavoriteMovie.objects.filter(user=self.user, movie_id=550).exists()
-        )
+        self.assertTrue(FavoriteMovie.objects.filter(user=self.user, movie_id=550).exists())
 
     def test_favorite_ordering(self):
         """Test that favorites are ordered by added_at descending"""
         self.client.force_authenticate(user=self.user)
 
         # Add another favorite
-        FavoriteMovie.objects.create(
-            user=self.user, movie_id=551, title="Newer Movie", vote_average=7.5
-        )
+        FavoriteMovie.objects.create(user=self.user, movie_id=551, title="Newer Movie", vote_average=7.5)
 
         url = reverse("favorite-movies")
         response = self.client.get(url)
@@ -550,11 +535,11 @@ class CacheBehaviorTests(TestCase):
             mock_get.return_value = mock_response
 
             # Cache page 1
-            result1 = self.tmdb_service.get_trending_movies(page=1)
+            _ = self.tmdb_service.get_trending_movies(page=1)
 
             # Modify response for page 2
             mock_response.json.return_value = {"results": [], "page": 2}
-            result2 = self.tmdb_service.get_trending_movies(page=2)
+            _ = self.tmdb_service.get_trending_movies(page=2)
 
             # Verify both are cached separately
             cached1 = cache.get("trending_movies_1")

@@ -1,6 +1,5 @@
 import logging
 
-from django.contrib.auth import authenticate
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
@@ -37,9 +36,7 @@ class RegisterView(generics.CreateAPIView):
 
         refresh = RefreshToken.for_user(user)
 
-        logger.info(
-            "API RESPONSE: /api/users/register/ | status=201 | user=%s", user.username
-        )
+        logger.info("API RESPONSE: /api/users/register/ | status=201 | user=%s", user.username)
 
         return Response(
             {

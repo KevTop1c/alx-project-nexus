@@ -1,14 +1,12 @@
-import json
-
-from django.contrib.auth.models import User
-from django.db import models
-from django.test import TestCase
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import UserProfile
+
+User = get_user_model()
 
 
 class UserRegistrationTests(APITestCase):
@@ -31,9 +29,7 @@ class UserRegistrationTests(APITestCase):
 
     def test_register_user_success(self):
         """Test successful user registration"""
-        response = self.client.post(
-            self.register_url, self.valid_user_data, format="json"
-        )
+        response = self.client.post(self.register_url, self.valid_user_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("user", response.data)
@@ -49,9 +45,7 @@ class UserRegistrationTests(APITestCase):
 
     def test_register_creates_user_profile(self):
         """Test that registration creates UserProfile automatically"""
-        response = self.client.post(
-            self.register_url, self.valid_user_data, format="json"
-        )
+        response = self.client.post(self.register_url, self.valid_user_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -62,9 +56,7 @@ class UserRegistrationTests(APITestCase):
 
     def test_register_returns_jwt_tokens(self):
         """Test that registration returns valid JWT tokens"""
-        response = self.client.post(
-            self.register_url, self.valid_user_data, format="json"
-        )
+        response = self.client.post(self.register_url, self.valid_user_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("tokens", response.data)
@@ -88,14 +80,10 @@ class UserRegistrationTests(APITestCase):
     def test_register_duplicate_username(self):
         """Test registration fails with duplicate username"""
         # Create first user
-        User.objects.create_user(
-            username="newuser", email="first@example.com", password="pass123"
-        )
+        User.objects.create_user(username="newuser", email="first@example.com", password="pass123")
 
         # Try to create duplicate
-        response = self.client.post(
-            self.register_url, self.valid_user_data, format="json"
-        )
+        response = self.client.post(self.register_url, self.valid_user_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("username", response.data)
@@ -174,9 +162,7 @@ class UserLoginTests(APITestCase):
         """Set up test fixtures"""
         self.client = APIClient()
         self.login_url = reverse("login")
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         UserProfile.objects.create(user=self.user)
 
     def test_login_success(self):
@@ -265,9 +251,7 @@ class JWTTokenTests(APITestCase):
     def setUp(self):
         """Set up test fixtures"""
         self.client = APIClient()
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         UserProfile.objects.create(user=self.user)
 
     def test_access_token_generation(self):
@@ -310,9 +294,7 @@ class JWTTokenTests(APITestCase):
 
         # Refresh the token
         refresh_url = reverse("token_refresh")
-        response = self.client.post(
-            refresh_url, {"refresh": refresh_token}, format="json"
-        )
+        response = self.client.post(refresh_url, {"refresh": refresh_token}, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access", response.data)
@@ -433,18 +415,14 @@ class UserProfileTests(APITestCase):
 
     def test_profile_bio_optional(self):
         """Test that bio field is optional"""
-        user = User.objects.create_user(
-            username="nobiouser", email="nobio@example.com", password="pass123"
-        )
+        user = User.objects.create_user(username="nobiouser", email="nobio@example.com", password="pass123")
         profile = UserProfile.objects.create(user=user)
 
         self.assertIsNone(profile.bio)
 
     def test_profile_cascade_delete(self):
         """Test that profile is deleted when user is deleted"""
-        user = User.objects.create_user(
-            username="deleteuser", email="delete@example.com", password="pass123"
-        )
+        user = User.objects.create_user(username="deleteuser", email="delete@example.com", password="pass123")
         profile = UserProfile.objects.create(user=user, bio="Will be deleted")
         profile_id = profile.id
 
@@ -506,9 +484,7 @@ class AuthenticationFlowTests(APITestCase):
 
         # Refresh the access token
         refresh_url = reverse("token_refresh")
-        refresh_response = self.client.post(
-            refresh_url, {"refresh": refresh_token}, format="json"
-        )
+        refresh_response = self.client.post(refresh_url, {"refresh": refresh_token}, format="json")
 
         self.assertEqual(refresh_response.status_code, status.HTTP_200_OK)
         self.assertIn("access", refresh_response.data)
@@ -535,7 +511,7 @@ class AuthenticationFlowTests(APITestCase):
         }
         response = self.client.post(register_url, data, format="json")
 
-        access_token = response.data["tokens"]["access"]
+        _ = response.data["tokens"]["access"]
 
         # Clear credentials (simulating logout)
         self.client.credentials()

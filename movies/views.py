@@ -3,7 +3,7 @@ import logging
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes, renderer_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
@@ -131,9 +131,7 @@ def recommended_movies(request, movie_id):
         return Response(data, status=status.HTTP_200_OK)
 
     except Exception as e:
-        logger.error(
-            "API ERROR: /api/movies/recommendations/%s/ | error=%s", movie_id, e
-        )
+        logger.error("API ERROR: /api/movies/recommendations/%s/ | error=%s", movie_id, e)
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -265,9 +263,7 @@ class AddFavoriteView(generics.GenericAPIView):
         validated_data = serializer.validated_data
 
         # Check if the movie already exists in favorites
-        existing = FavoriteMovie.objects.filter(
-            user=request.user, movie_id=validated_data["movie_id"]
-        ).first()
+        existing = FavoriteMovie.objects.filter(user=request.user, movie_id=validated_data["movie_id"]).first()
 
         if existing:
             return Response(
@@ -346,9 +342,7 @@ def remove_favorite(request, movie_id):
             movie_id,
             request.user.username,
         )
-        return Response(
-            {"error": "Movie not found in favorites"}, status=status.HTTP_404_NOT_FOUND
-        )
+        return Response({"error": "Movie not found in favorites"}, status=status.HTTP_404_NOT_FOUND)
 
 
 @swagger_auto_schema(
@@ -379,13 +373,9 @@ def cache_stats(request):
             "API UNAUTHORIZED: /api/movies/cache-stats/ | user=%s | error=Not staff",
             request.user.username,
         )
-        return Response(
-            {"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN
-        )
+        return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
 
-    logger.info(
-        "API REQUEST: /api/movies/cache-stats/ | user=%s", request.user.username
-    )
+    logger.info("API REQUEST: /api/movies/cache-stats/ | user=%s", request.user.username)
     stats = tmdb_service.get_cache_stats()
 
     if stats:
@@ -395,9 +385,7 @@ def cache_stats(request):
         )
         return Response(stats, status=status.HTTP_200_OK)
     else:
-        logger.error(
-            "API ERROR: /api/movies/cache-stats/ | error=%s", "Failed to retrieve stats"
-        )
+        logger.error("API ERROR: /api/movies/cache-stats/ | error=%s", "Failed to retrieve stats")
         return Response(
             {"error": "Failed to retrieve cache stats"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,

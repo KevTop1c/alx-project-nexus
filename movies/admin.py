@@ -200,7 +200,7 @@ class FavoriteMovieAdmin(admin.ModelAdmin):
         for key, value in info.items():
             html += f"""
             <div style="
-                margin-bottom: 12px; 
+                margin-bottom: 12px;
                 padding: 8px 0;
                 border-bottom: 1px solid #f8f9fa;
             ">
@@ -267,15 +267,11 @@ class FavoriteMovieAdmin(admin.ModelAdmin):
         total_favorites = FavoriteMovie.objects.count()
         unique_users = FavoriteMovie.objects.values("user").distinct().count()
         unique_movies = FavoriteMovie.objects.values("movie_id").distinct().count()
-        avg_rating = FavoriteMovie.objects.aggregate(Avg("vote_average"))[
-            "vote_average__avg"
-        ]
+        avg_rating = FavoriteMovie.objects.aggregate(Avg("vote_average"))["vote_average__avg"]
 
         # Top 5 most favorited movies
         top_movies = (
-            FavoriteMovie.objects.values("movie_id", "title", "poster_path")
-            .annotate(count=Count("id"))
-            .order_by("-count")[:5]
+            FavoriteMovie.objects.values("movie_id", "title", "poster_path").annotate(count=Count("id")).order_by("-count")[:5]
         )
 
         extra_context["total_favorites"] = total_favorites

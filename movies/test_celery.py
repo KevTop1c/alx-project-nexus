@@ -1,22 +1,17 @@
 from unittest.mock import patch
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from .models import FavoriteMovie
-from .tasks import (
-    fetch_movie_details_async,
-    refresh_trending_cache,
-    send_favorite_notification,
-)
+from .tasks import fetch_movie_details_async, refresh_trending_cache, send_favorite_notification
+
+User = get_user_model()
 
 
 class CeleryTaskTests(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
 
     @patch("movies.tasks.tmdb_service.get_trending_movies")
     def test_refresh_trending_cache(self, mock_trending):
@@ -29,9 +24,7 @@ class CeleryTaskTests(TestCase):
 
     @patch("movies.tasks.send_mail")
     def test_send_favorite_notification(self, mock_mail):
-        result = send_favorite_notification(
-            user_id=self.user.id, movie_title="Test Movie"
-        )
+        result = send_favorite_notification(user_id=self.user.id, movie_title="Test Movie")
 
         self.assertEqual(result["status"], "success")
         mock_mail.assert_called_once()

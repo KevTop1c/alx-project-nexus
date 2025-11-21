@@ -3,24 +3,16 @@ Test RabbitMQ connection and queue tasks
 Usage: python manage.py test_rabbitmq
 """
 
-import time
-
 from django.core.management.base import BaseCommand
 
-from movies.tasks import (
-    fetch_movie_details_async,
-    refresh_trending_cache,
-    send_favorite_notification,
-)
+from movies.tasks import fetch_movie_details_async, refresh_trending_cache, send_favorite_notification
 
 
 class Command(BaseCommand):
     help = "Test RabbitMQ connection and task queueing"
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "--task", type=str, help="Specific task to test", default=""
-        )
+        parser.add_argument("--task", type=str, help="Specific task to test", default="")
 
     def handle(self, *args, **options):
         task_name = options["task"]
@@ -53,9 +45,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("No user with email found"))
             return
 
-        result = send_favorite_notification.delay(
-            user_id=user.id, movie_title="Test Movie from RabbitMQ"
-        )
+        result = send_favorite_notification.delay(user_id=user.id, movie_title="Test Movie from RabbitMQ")
 
         self.stdout.write(f"Task ID: {result.id}")
         self.stdout.write(f"Queue: emails")

@@ -36,19 +36,13 @@ app.autodiscover_tasks()
 
 # Celery Signals for Monitoring
 @task_prerun.connect
-def task_prerun_handler(
-    sender=None, task_id=None, task=None, args=None, kwargs=None, **extra
-):
+def task_prerun_handler(sender=None, task_id=None, task=None, args=None, kwargs=None, **extra):
     """Log when task starts"""
-    logger.info(
-        "Task %s[%s] started with args=%s, kwargs=%s", task.name, task_id, args, kwargs
-    )
+    logger.info("Task %s[%s] started with args=%s, kwargs=%s", task.name, task_id, args, kwargs)
 
 
 @task_postrun.connect
-def task_postrun_handler(
-    sender=None, task_id=None, task=None, args=None, kwargs=None, retval=None, **extra
-):
+def task_postrun_handler(sender=None, task_id=None, task=None, args=None, kwargs=None, retval=None, **extra):
     """Log when task completes"""
     logger.info("Task %s[%s] completed successfully", task.name, task_id)
 
