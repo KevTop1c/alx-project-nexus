@@ -78,9 +78,9 @@ WSGI_APPLICATION = "movie_recommendation.wsgi.application"
 
 
 # Database
-DATABASE_URL = config("DATABASE_URL", default=None)
+IS_RENDER = config("RENDER", default=None)
 
-if DATABASE_URL:
+if IS_RENDER:
     DATABASES = {
         "default": dj_database_url.config(
             default=config("DATABASE_URL"), conn_max_age=600
@@ -103,7 +103,7 @@ REDIS_URL = config("UPSTASH_REDIS_URL", default=None)
 if not REDIS_URL:
     raise Exception("UPSTASH_REDIS_URL is not set in environment")
 
-if REDIS_URL:
+if IS_RENDER and REDIS_URL:
     # Render / Production: Upstash with SSL
     CELERY_RESULT_BACKEND = REDIS_URL
     CACHES = {
