@@ -1,12 +1,14 @@
-from django.test import TestCase
-from django.contrib.auth.models import User
-from django.urls import reverse
-from django.db import models
-from rest_framework.test import APITestCase, APIClient
-from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
-from .models import UserProfile
 import json
+
+from django.contrib.auth.models import User
+from django.db import models
+from django.test import TestCase
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APIClient, APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from .models import UserProfile
 
 
 class UserRegistrationTests(APITestCase):

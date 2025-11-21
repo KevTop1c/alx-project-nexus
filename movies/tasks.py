@@ -1,13 +1,15 @@
 import logging
 from datetime import datetime, timedelta
+
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.core.cache import cache
-from django.core.mail import send_mail
-from django_redis import get_redis_connection
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Count, Avg, Q
+from django.core.cache import cache
+from django.core.mail import send_mail
+from django.db.models import Avg, Count, Q
+from django_redis import get_redis_connection
+
 from .models import FavoriteMovie
 from .utils.tmdb_service import TMDbService
 

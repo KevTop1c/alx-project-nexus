@@ -1,12 +1,14 @@
-from django.test import TestCase
-from django.contrib.auth.models import User
 from unittest.mock import patch
+
+from django.contrib.auth.models import User
+from django.test import TestCase
+
+from .models import FavoriteMovie
 from .tasks import (
+    fetch_movie_details_async,
     refresh_trending_cache,
     send_favorite_notification,
-    fetch_movie_details_async,
 )
-from .models import FavoriteMovie
 
 
 class CeleryTaskTests(TestCase):

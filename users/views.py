@@ -1,18 +1,20 @@
 import logging
-from rest_framework import status, generics
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.tokens import RefreshToken
+
 from django.contrib.auth import authenticate
-from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 from .serializers import (
+    CustomTokenObtainPairSerializer,
+    UserProfileSerializer,
     UserRegistrationSerializer,
     UserSerializer,
-    UserProfileSerializer,
-    CustomTokenObtainPairSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -76,7 +78,7 @@ class RegisterView(generics.CreateAPIView):
                             "email": openapi.Schema(type=openapi.TYPE_STRING),
                             "first_name": openapi.Schema(type=openapi.TYPE_STRING),
                             "last_name": openapi.Schema(type=openapi.TYPE_STRING),
-                        }
+                        },
                     ),
                 },
             ),

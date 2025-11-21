@@ -3,13 +3,15 @@ Test RabbitMQ connection and queue tasks
 Usage: python manage.py test_rabbitmq
 """
 
+import time
+
 from django.core.management.base import BaseCommand
+
 from movies.tasks import (
-    send_favorite_notification,
     fetch_movie_details_async,
     refresh_trending_cache,
+    send_favorite_notification,
 )
-import time
 
 
 class Command(BaseCommand):

@@ -1,8 +1,9 @@
-import os
-from celery import Celery
-from celery.signals import task_prerun, task_postrun, task_failure
-from kombu import Queue, Exchange
 import logging
+import os
+
+from celery import Celery
+from celery.signals import task_failure, task_postrun, task_prerun
+from kombu import Exchange, Queue
 
 logger = logging.getLogger(__name__)
 

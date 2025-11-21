@@ -1,13 +1,14 @@
 from django.urls import path
+
 from .views import (
-    trending_movies,
-    recommended_movies,
-    search_movies,
-    movie_details,
-    FavoriteMovieListView,
     AddFavoriteView,
-    remove_favorite,
+    FavoriteMovieListView,
     cache_stats,
+    movie_details,
+    recommended_movies,
+    remove_favorite,
+    search_movies,
+    trending_movies,
 )
 
 urlpatterns = [

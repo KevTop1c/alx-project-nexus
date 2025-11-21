@@ -1,19 +1,18 @@
 import logging
-from rest_framework import status, generics
-from rest_framework.decorators import api_view, permission_classes, renderer_classes
-from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.renderers import (
-    JSONRenderer,
-    BrowsableAPIRenderer,
-)
-from drf_yasg.utils import swagger_auto_schema
+
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics, status
+from rest_framework.decorators import api_view, permission_classes, renderer_classes
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.response import Response
+
 from .models import FavoriteMovie
-from .serializers import FavoriteMovieSerializer, AddFavoriteSerializer, MovieSerializer
+from .serializers import AddFavoriteSerializer, FavoriteMovieSerializer, MovieSerializer
+from .tasks import fetch_movie_details_async, send_favorite_notification
 from .utils.tmdb_service import TMDbService
-from .tasks import send_favorite_notification, fetch_movie_details_async
 
 logger = logging.getLogger(__name__)
 tmdb_service = TMDbService()

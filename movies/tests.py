@@ -1,11 +1,13 @@
-from django.test import TestCase, override_settings
+import json
+from unittest.mock import MagicMock, patch
+
 from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.test import TestCase, override_settings
 from django.urls import reverse
-from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
-from unittest.mock import patch, MagicMock
-import json
+from rest_framework.test import APIClient, APITestCase
+
 from .models import FavoriteMovie
 from .utils.tmdb_service import TMDbService
 

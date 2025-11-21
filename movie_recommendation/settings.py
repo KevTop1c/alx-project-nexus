@@ -1,10 +1,11 @@
 import os
+import ssl
+from datetime import timedelta
+from pathlib import Path
+
 import certifi
 import dj_database_url
-import ssl
-from pathlib import Path
 from decouple import config
-from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,9 +78,9 @@ WSGI_APPLICATION = "movie_recommendation.wsgi.application"
 
 
 # Database
-IS_RENDER = os.environ.get("RENDER", None) is not None
+DATABASE_URL = config("DATABASE_URL", default=None)
 
-if IS_RENDER:
+if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.config(
             default=config("DATABASE_URL"), conn_max_age=600
@@ -102,7 +103,7 @@ REDIS_URL = config("UPSTASH_REDIS_URL", default=None)
 if not REDIS_URL:
     raise Exception("UPSTASH_REDIS_URL is not set in environment")
 
-if IS_RENDER and REDIS_URL:
+if REDIS_URL:
     # Render / Production: Upstash with SSL
     CELERY_RESULT_BACKEND = REDIS_URL
     CACHES = {
@@ -124,7 +125,7 @@ if IS_RENDER and REDIS_URL:
     }
 else:
     # Local development: plain Redis on localhost
-    REDIS_URL = config("REDIS_URL")
+    REDIS_URL = config("REDIS_URL", default="redis://localhost:6379/1")
     CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND")
     CACHES = {
         "default": {
