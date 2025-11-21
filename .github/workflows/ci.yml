@@ -1,0 +1,54 @@
+# Code Quality Check - Runs on every push and PR
+
+name: Code Quality
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install linting tools
+        run: |
+          pip install flake8 black isort
+
+      - name: Run Black (Code Formatting)
+        run: |
+          echo "Checking code formatting with Black..."
+          black --check --diff . || echo "⚠️ Run 'black .' to fix formatting"
+        continue-on-error: true
+
+      - name: Run isort (Import Sorting)
+        run: |
+          echo "Checking import sorting..."
+          isort --check-only --diff . || echo "⚠️ Run 'isort .' to fix imports"
+        continue-on-error: true
+
+      - name: Run Flake8 (Linting)
+        run: |
+          echo "Running Flake8 linting..."
+          # Stop if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Show style issues as warnings
+          flake8 . --count --exit-zero --max-line-length=127 --statistics
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "✅ Code quality checks completed!"
+          echo "See above for any issues that need fixing."
