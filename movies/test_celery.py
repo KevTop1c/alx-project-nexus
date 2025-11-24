@@ -6,13 +6,12 @@ from django.test import TestCase
 from .tasks import fetch_movie_details_async, refresh_trending_cache, send_favorite_notification
 
 User = get_user_model()
-TEST_PASSWORD = "testpass123"  # nosec B105,B106
 
-
+# bandit: skip=B105,B106
 class CeleryTaskTests(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password=TEST_PASSWORD)
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="tespass123")
 
     @patch("movies.tasks.tmdb_service.get_trending_movies")
     def test_refresh_trending_cache(self, mock_trending):
