@@ -10,6 +10,8 @@ from rest_framework.test import APIClient, APITestCase
 from .models import FavoriteMovie
 from .utils.tmdb_service import TMDbService
 
+TEST_PASSWORD = "testpass123"  # nosec B105,B106
+
 
 class TMDbServiceTests(TestCase):
     """
@@ -206,7 +208,7 @@ class MovieEndpointTests(APITestCase):
     def setUp(self):
         """Set up test fixtures"""
         self.client = APIClient()
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password=TEST_PASSWORD)
         cache.clear()
 
     def tearDown(self):
@@ -300,8 +302,8 @@ class FavoriteMovieCRUDTests(APITestCase):
     def setUp(self):
         """Set up test fixtures"""
         self.client = APIClient()
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
-        self.other_user = User.objects.create_user(username="otheruser", email="other@example.com", password="testpass123")
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password=TEST_PASSWORD)
+        self.other_user = User.objects.create_user(username="otheruser", email="other@example.com", password=TEST_PASSWORD)
 
         # Create sample favorite
         self.favorite = FavoriteMovie.objects.create(

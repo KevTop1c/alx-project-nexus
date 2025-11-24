@@ -7,6 +7,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import UserProfile
 
 User = get_user_model()
+PASSWORD = "pass123"  # nosec B105,B106
+TEST_PASSWORD = "testpass123"  # nosec B105,B106
 
 
 class UserRegistrationTests(APITestCase):
@@ -80,7 +82,7 @@ class UserRegistrationTests(APITestCase):
     def test_register_duplicate_username(self):
         """Test registration fails with duplicate username"""
         # Create first user
-        User.objects.create_user(username="newuser", email="first@example.com", password="pass123")
+        User.objects.create_user(username="newuser", email="first@example.com", password="PASSWORD")
 
         # Try to create duplicate
         response = self.client.post(self.register_url, self.valid_user_data, format="json")
@@ -98,7 +100,7 @@ class UserRegistrationTests(APITestCase):
         User.objects.create_user(
             username="firstuser",
             email=duplicate_email,
-            password="pass123",
+            password="PASSWORD",
         )
 
         # Try to create with same email
@@ -106,9 +108,9 @@ class UserRegistrationTests(APITestCase):
             self.register_url,
             {
                 "username": "seconduser",
-                "email": duplicate_email,  # 🛠️ FIX: Explicit duplicate email
-                "password": "testpass123",
-                "password_confirm": "testpass123",
+                "email": duplicate_email,  # Explicit duplicate email
+                "password": "TEST_PASSWORD",
+                "password_confirm": "TEST_PASSWORD",
             },
             format="json",
         )
@@ -162,12 +164,12 @@ class UserLoginTests(APITestCase):
         """Set up test fixtures"""
         self.client = APIClient()
         self.login_url = reverse("login")
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="TEST_PASSWORD")
         UserProfile.objects.create(user=self.user)
 
     def test_login_success(self):
         """Test successful login"""
-        data = {"username": "testuser", "password": "testpass123"}
+        data = {"username": "testuser", "password": "TEST_PASSWORD"}
 
         response = self.client.post(self.login_url, data, format="json")
 
@@ -179,7 +181,7 @@ class UserLoginTests(APITestCase):
 
     def test_login_returns_jwt_tokens(self):
         """Test that login returns valid JWT tokens"""
-        data = {"username": "testuser", "password": "testpass123"}
+        data = {"username": "testuser", "password": "TEST_PASSWORD"}
 
         response = self.client.post(self.login_url, data, format="json")
 
@@ -202,7 +204,7 @@ class UserLoginTests(APITestCase):
 
     def test_login_nonexistent_user(self):
         """Test login fails with nonexistent user"""
-        data = {"username": "nonexistent", "password": "testpass123"}
+        data = {"username": "nonexistent", "password": "TEST_PASSWORD"}
 
         response = self.client.post(self.login_url, data, format="json")
 
@@ -210,7 +212,7 @@ class UserLoginTests(APITestCase):
 
     def test_login_missing_username(self):
         """Test login fails without username"""
-        data = {"password": "testpass123"}
+        data = {"password": "TEST_PASSWORD"}
 
         response = self.client.post(self.login_url, data, format="json")
 
@@ -236,7 +238,7 @@ class UserLoginTests(APITestCase):
 
     def test_login_case_sensitive_username(self):
         """Test that username is case-sensitive"""
-        data = {"username": "TESTUSER", "password": "testpass123"}  # Wrong case
+        data = {"username": "TESTUSER", "password": "TEST_PASSWORD"}  # Wrong case
 
         response = self.client.post(self.login_url, data, format="json")
 
@@ -251,7 +253,7 @@ class JWTTokenTests(APITestCase):
     def setUp(self):
         """Set up test fixtures"""
         self.client = APIClient()
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="TEST_PASSWORD")
         UserProfile.objects.create(user=self.user)
 
     def test_access_token_generation(self):
@@ -274,7 +276,7 @@ class JWTTokenTests(APITestCase):
         """Test authentication with access token"""
         # Get tokens
         login_url = reverse("login")
-        login_data = {"username": "testuser", "password": "testpass123"}
+        login_data = {"username": "testuser", "password": "TEST_PASSWORD"}
         login_response = self.client.post(login_url, login_data, format="json")
 
         access_token = login_response.data["access"]
@@ -341,7 +343,7 @@ class UserProfileTests(APITestCase):
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
-            password="testpass123",
+            password="TEST_PASSWORD",
             first_name="John",
             last_name="Doe",
         )
@@ -415,14 +417,14 @@ class UserProfileTests(APITestCase):
 
     def test_profile_bio_optional(self):
         """Test that bio field is optional"""
-        user = User.objects.create_user(username="nobiouser", email="nobio@example.com", password="pass123")
+        user = User.objects.create_user(username="nobiouser", email="nobio@example.com", password="PASSWORD")
         profile = UserProfile.objects.create(user=user)
 
         self.assertIsNone(profile.bio)
 
     def test_profile_cascade_delete(self):
         """Test that profile is deleted when user is deleted"""
-        user = User.objects.create_user(username="deleteuser", email="delete@example.com", password="pass123")
+        user = User.objects.create_user(username="deleteuser", email="delete@example.com", password="PASSWORD")
         profile = UserProfile.objects.create(user=user, bio="Will be deleted")
         profile_id = profile.id
 
