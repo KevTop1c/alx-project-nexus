@@ -1,6 +1,6 @@
-# Code Quality Check - Runs on every push and PR
+# Code Quality & Security Check - Runs on every push and PR
 
-name: Code Quality
+name: Code Quality & Security
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
     branches: [main]
 
 jobs:
-  lint:
-    name: Code Quality Check
+  lint-and-security:
+    name: Code Quality & Security Check
     runs-on: ubuntu-latest
 
     steps:
@@ -23,10 +23,11 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Install linting tools
+      - name: Install tools
         run: |
-          pip install flake8 black isort
+          pip install flake8 black isort bandit safety pip-audit
 
+      # Code Quality Checks
       - name: Run Black (Code Formatting)
         run: |
           echo "Checking code formatting with Black..."
@@ -47,8 +48,46 @@ jobs:
           # Show style issues as warnings
           flake8 . --count --exit-zero --max-line-length=127 --statistics
 
+      # Security Checks
+      - name: Run Bandit (Security Linting)
+        run: |
+          echo "🔒 Running Bandit security checks..."
+          bandit -r . -f json -o bandit-report.json || true
+          bandit -r . -f screen
+        continue-on-error: true
+
+      - name: Run Safety (Dependency Vulnerabilities)
+        run: |
+          echo "🔒 Checking for known security vulnerabilities in dependencies..."
+          safety scan || echo "⚠️ Found vulnerabilities in dependencies"
+        continue-on-error: true
+
+      - name: Run pip-audit (Dependency Security)
+        run: |
+          echo "🔒 Auditing dependencies for security issues..."
+          pip-audit || echo "⚠️ Security issues found in dependencies"
+        continue-on-error: true
+
+      - name: Upload Bandit Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+          retention-days: 30
+
+      # CodeQL Analysis (Advanced Security)
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
       - name: Summary
         if: always()
         run: |
-          echo "✅ Code quality checks completed!"
+          echo "✅ Code quality and security checks completed!"
+          echo "📊 Check the Actions tab for detailed security reports"
           echo "See above for any issues that need fixing."
