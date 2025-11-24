@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.db.models import Avg, Count
 from django.urls import reverse
 from django.utils.html import escape, format_html, format_html_join
-from django.utils.safestring import mark_safe
 
 from .models import FavoriteMovie
 
@@ -221,7 +220,7 @@ class FavoriteMovieAdmin(admin.ModelAdmin):
 
         closing_html = format_html("</div>")
 
-        return mark_safe(opening_html + rows_html + closing_html)
+        return opening_html + rows_html + closing_html
 
     movie_info_card.short_description = "Complete Movie Information"
 
