@@ -352,15 +352,19 @@ celery -A movie_recommendation flower --port=5555
 
 ---
 
-## Code Quality Check - GitHub Actions
+## Code Quality & Security Check - GitHub Actions
 
 ### What This Does
 
 Automatically checks your code quality on every push:
 
-✅ **Black** - Code formatting  
-✅ **isort** - Import sorting  
-✅ **Flake8** - Code linting (syntax errors, style issues)
+- ✅ **Black** - Code formatting  
+- ✅ **isort** - Import sorting  
+- ✅ **Flake8** - Code linting (syntax errors, style issues)
+- 🔒 **Bandit** - Security Scanning
+- 🔒 **Safety and pip-audit** - Dependency vulnerability checks
+- 🔒 **CodeQL** - Advanced security analysis
+
 
 **Time:** ~30 seconds
 
@@ -368,7 +372,7 @@ Automatically checks your code quality on every push:
 
 #### Step 1: Create the workflow
 
-Create `.github/workflows/code-quality.yml` with the content above.
+Create `.github/workflows/ci.yml` with the content above.
 
 #### Step 2: Add config files
 
@@ -395,6 +399,14 @@ Your Push
     ↓
 [Flake8] Linting check
     ↓
+[Bandit] Security linting check
+    ↓
+[Safety] Dependency vulnerability check
+    ↓
+[pip-audit] Dependency security check
+    ↓
+CodeQL Analysis
+    ↓
 ✅ Pass or ⚠️ Issues found
 ```
 
@@ -404,7 +416,7 @@ If the checks fail, fix them before pushing:
 
 ```bash
 # Install tools
-pip install black isort flake8
+pip install black isort flake8 bandit safety pip-audit
 
 # Auto-fix formatting
 black .
