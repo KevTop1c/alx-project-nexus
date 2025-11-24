@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Avg, Count
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import escape, format_html, format_html_join
 from django.utils.safestring import mark_safe
 
 from .models import FavoriteMovie
@@ -170,7 +170,8 @@ class FavoriteMovieAdmin(admin.ModelAdmin):
     view_on_tmdb.short_description = "TMDb Link"
 
     def movie_info_card(self, obj):
-        """Display comprehensive movie information card"""
+        """Display comprehensive movie information card (XSS-safe)"""
+
         info = {
             "TMDb ID": obj.movie_id,
             "Title": obj.title,
@@ -182,7 +183,9 @@ class FavoriteMovieAdmin(admin.ModelAdmin):
             "Added On": obj.added_at.strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-        html = """
+        # Card wrapper (static, safe)
+        opening_html = format_html(
+            """
             <div style="
                 background: white;
                 padding: 20px;
@@ -192,26 +195,33 @@ class FavoriteMovieAdmin(admin.ModelAdmin):
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             ">
-                <h4 style="margin-top: 0; margin-bottom: 15px; color: #417690; border-bottom: 1px solid #e9ecef; padding-bottom: 8px;">
+                <h4 style="margin-top: 0; margin-bottom: 15px; color: #417690; 
+                        border-bottom: 1px solid #e9ecef; padding-bottom: 8px;">
                     Movie Information Card
                 </h4>
-            """
+        """
+        )
 
-        for key, value in info.items():
-            html += f"""
+        # Securely build each info row
+        rows_html = format_html_join(
+            "",
+            """
             <div style="
                 margin-bottom: 12px;
                 padding: 8px 0;
                 border-bottom: 1px solid #f8f9fa;
             ">
-                <strong style="color: #495057; min-width: 120px; display: inline-block;">{key}:</strong>
-                <span style="color: #212529;">{value}</span>
+                <strong style="color: #495057; min-width: 120px; display: inline-block;">{}:</strong>
+                <span style="color: #212529;">{}</span>
             </div>
-            """
+            """,
+            # Escape both key and value safely
+            ((escape(k), escape(v)) for k, v in info.items()),
+        )
 
-        html += "</div>"
+        closing_html = format_html("</div>")
 
-        return mark_safe(html)
+        return mark_safe(opening_html + rows_html + closing_html)
 
     movie_info_card.short_description = "Complete Movie Information"
 
